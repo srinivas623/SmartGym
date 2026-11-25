@@ -3,13 +3,74 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>web</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gym Live Occupancy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 40px;
+            background: #111;
+            color: #fff;
+        }
+
+        #count {
+            font-size: 80px;
+            font-weight: bold;
+        }
+
+        #status {
+            font-size: 24px;
+            margin: 10px 0 30px;
+        }
+
+        button {
+            font-size: 18px;
+            padding: 12px 24px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Hello People</h1>
-    <script src="script.js"></script>
+    <h1>Gym Live Occupancy</h1>
+    <div id="count">0</div>
+    <div id="status">Quiet</div>
+    <button onclick="checkIn()">Check In</button>
+    <button onclick="checkOut()">Check Out</button>
+
+    <script>
+        const capacity = 50;
+        let current = 0;
+
+        function update() {
+            const percent = (current / capacity) * 100;
+            let label = "Quiet";
+            let color = "#4caf50";
+            if (percent >= 70) { label = "Full"; color = "#f44336"; }
+            else if (percent >= 50) { label = "Busy"; color = "#ff9800"; }
+            else if (percent >= 30) { label = "Moderate"; color = "#ffc107"; }
+
+            document.getElementById("count").textContent = current + " / " + capacity;
+            document.getElementById("status").textContent = label;
+            document.getElementById("status").style.color = color;
+        }
+
+        function checkIn() {
+            if (current < capacity) current++;
+            update();
+        }
+
+        function checkOut() {
+            if (current > 0) current--;
+            update();
+        }
+
+        update();
+    </script>
 </body>
 
 </html>
