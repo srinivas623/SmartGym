@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Member QR Cards</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card {
+            display: inline-block;
+            background: #fff;
+            margin: 10px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+        }
+
+        .qr {
+            display: inline-block;
+            padding: 10px;
+            background: #fff;
+        }
+
+        h3 {
+            margin: 10px 0 2px;
+        }
+
+        p {
+            margin: 0;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Member QR Cards</h1>
+    <div id="cards"></div>
+
+    <script>
+        const members = {
+            M001: "Ravi Kumar",
+            M002: "Anjali Rao",
+            M003: "Kiran Reddy"
+        };
+
+        const container = document.getElementById("cards");
+
+        for (const code in members) {
+            const card = document.createElement("div");
+            card.className = "card";
+
+            const qrBox = document.createElement("div");
+            qrBox.className = "qr";
+
+            const name = document.createElement("h3");
+            name.textContent = members[code];
+
+            const id = document.createElement("p");
+            id.textContent = code;
+
+            card.appendChild(qrBox);
+            card.appendChild(name);
+            card.appendChild(id);
+            container.appendChild(card);
+
+            new QRCode(qrBox, { text: code, width: 180, height: 180 });
+        }
+    </script>
+</body>
+
+</html>
