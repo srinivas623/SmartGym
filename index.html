@@ -4,70 +4,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gym Live Occupancy</title>
+    <title>Gym Kiosk</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 40px;
             background: #111;
             color: #fff;
+            text-align: center;
+            padding: 30px;
         }
 
         #count {
-            font-size: 80px;
+            font-size: 70px;
             font-weight: bold;
         }
 
         #status {
-            font-size: 24px;
-            margin: 10px 0 30px;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            font-size: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            width: 220px;
+            text-transform: uppercase;
         }
 
         button {
             font-size: 18px;
             padding: 12px 24px;
-            margin: 5px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
+        }
+
+        #message {
+            margin: 20px auto;
+            padding: 15px;
+            max-width: 360px;
+            border-radius: 8px;
+            font-size: 20px;
+            display: none;
+        }
+
+        .ok {
+            background: #2e7d32;
+        }
+
+        .bad {
+            background: #c62828;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            max-width: 360px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        li {
+            background: #222;
+            margin: 6px 0;
+            padding: 10px 14px;
+            border-radius: 6px;
         }
     </style>
 </head>
 
 <body>
-    <h1>Gym Live Occupancy</h1>
+    <h1>Gym Kiosk</h1>
     <div id="count">0</div>
     <div id="status">Quiet</div>
-    <button onclick="checkIn()">Check In</button>
-    <button onclick="checkOut()">Check Out</button>
+
+    <input id="code" placeholder="Member code e.g. M001">
+    <button onclick="scan()">Scan</button>
+
+    <div id="message"></div>
+
+    <h3>Currently inside</h3>
+    <ul id="inside"></ul>
 
     <script>
         const capacity = 50;
-        let current = 0;
+
+        const members = {
+            M001: { name: "Ravi Kumar", active: true },
+            M002: { name: "Anjali Rao", active: true },
+            M003: { name: "Kiran Reddy", active: false }  // expired membership
+        };
+
+        // Load saved data, or start with an empty list
+        let inside = JSON.parse(localStorage.getItem("inside")) || [];
+
+        function save() {
+            localStorage.setItem("inside", JSON.stringify(inside));
+        }
+
+        function showMessage(text, type) {
+            const box = document.getElementById("message");
+            box.textContent = text;
+            box.className = type;
+            box.style.display = "block";
+            setTimeout(() => { box.style.display = "none"; }, 3000);
+        }
+
+        function scan() {
+            const input = document.getElementById("code");
+            const code = input.value.trim().toUpperCase();
+            input.value = "";
+
+            const member = members[code];
+            if (!member) { showMessage("Unknown code", "bad"); return; }
+            if (!member.active) { showMessage(member.name + ": membership expired", "bad"); return; }
+
+            const index = inside.findIndex(p => p.code === code);
+            if (index === -1) {
+                inside.push({ code: code, name: member.name, time: new Date().toISOString() });
+                showMessage("Welcome, " + member.name + " (checked in)", "ok");
+            } else {
+                inside.splice(index, 1);
+                showMessage("Goodbye, " + member.name + " (checked out)", "ok");
+            }
+            save();
+            update();
+        }
 
         function update() {
-            const percent = (current / capacity) * 100;
-            let label = "Quiet";
-            let color = "#4caf50";
-            if (percent >= 70) { label = "Full"; color = "#f44336"; }
-            else if (percent >= 50) { label = "Busy"; color = "#ff9800"; }
-            else if (percent >= 30) { label = "Moderate"; color = "#ffc107"; }
+            const percent = (inside.length / capacity) * 100;
+            let label = "Quiet", color = "#4caf50";
+            if (percent >= 90) { label = "Full"; color = "#f44336"; }
+            else if (percent >= 70) { label = "Busy"; color = "#ff9800"; }
+            else if (percent >= 40) { label = "Moderate"; color = "#ffc107"; }
 
-            document.getElementById("count").textContent = current + " / " + capacity;
-            document.getElementById("status").textContent = label;
-            document.getElementById("status").style.color = color;
+            document.getElementById("count").textContent = inside.length + " / " + capacity;
+            const status = document.getElementById("status");
+            status.textContent = label;
+            status.style.color = color;
+
+            const list = document.getElementById("inside");
+            list.innerHTML = "";
+            inside.forEach(p => {
+                const time = new Date(p.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                const li = document.createElement("li");
+                li.textContent = p.name + " (in at " + time + ")";
+                list.appendChild(li);
+            });
         }
 
-        function checkIn() {
-            if (current < capacity) current++;
-            update();
-        }
-
-        function checkOut() {
-            if (current > 0) current--;
-            update();
-        }
+        document.getElementById("code").addEventListener("keydown", e => {
+            if (e.key === "Enter") scan();
+        });
 
         update();
     </script>
